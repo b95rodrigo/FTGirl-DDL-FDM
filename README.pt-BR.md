@@ -52,6 +52,8 @@ O UUID interno continua como `fitgirl-ddl-ng-fdm` para que usuários das versõe
 
 Na página FitGirl, localize **Download Mirrors (Direct Links)**. Clique com o botão direito em **Filehoster: FuckingFast** e escolha **Copiar endereço do link**.
 
+![Copiar o link do FuckingFast](docs/images/01-copy-fuckingfast-link.png)
+
 O endereço copiado normalmente tem este formato:
 
 ```text
@@ -62,15 +64,23 @@ https://paste.fitgirl-repacks.site/?xxxxxxxxxxxxxxxx#xxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 Abra o Free Download Manager, clique em **Adicionar download**, cole o link e pressione **OK**.
 
+![Adicionar o link ao FDM](docs/images/02-add-download-to-fdm.webp)
+
 ### 3. Selecione os arquivos
 
 A extensão irá expandir o espelho e mostrar as partes disponíveis. Selecione todos os arquivos ou somente os que desejar e clique em **BAIXAR**.
+
+![Selecionar os arquivos e baixar](docs/images/03-select-files-and-download.webp)
 
 ### 4. Pressione Mostrar downloads
 
 Inicialmente o FDM agrupa os arquivos selecionados em uma entrada. Clique com o botão direito nessa entrada e escolha **Mostrar downloads**.
 
+![Mostrar downloads](docs/images/04-show-downloads.webp)
+
 Os arquivos `.rar` serão exibidos separadamente, cada um baixando através do link FuckingFast resolvido pela extensão.
+
+![Downloads individuais no FDM](docs/images/05-individual-downloads.webp)
 
 ## Primeira execução
 
