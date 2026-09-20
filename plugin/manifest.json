@@ -2,7 +2,7 @@
   "uuid": "fitgirl-ddl-ng-fdm",
   "author": "b95rodrigo",
   "name": "FTGirl DDL FDM",
-  "description": "Free Download Manager add-on that expands FitGirl FuckingFast mirror lists and resolves each selected file when the download starts.",
+  "description": "Free Download Manager add-on for FitGirl FuckingFast mirror lists with on-demand per-file direct-link resolution.",
   "version": "1.0.0",
   "icon": "icon.svg",
   "mediaParser": true,
