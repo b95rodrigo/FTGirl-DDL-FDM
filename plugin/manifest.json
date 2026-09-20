@@ -1,0 +1,26 @@
+{
+  "uuid": "fitgirl-ddl-ng-fdm",
+  "author": "b95rodrigo",
+  "name": "FTGirl DDL FDM",
+  "description": "Free Download Manager add-on that expands FitGirl FuckingFast mirror lists and resolves each selected file when the download starts.",
+  "version": "1.0.0",
+  "icon": "icon.svg",
+  "mediaParser": true,
+  "mediaListParser": true,
+  "minApiVersion": 7,
+  "minFeaturesLevel": 2,
+  "targetApiVersion": 9,
+  "dependencies": {
+    "Python": {
+      "minVersion": "3.10"
+    }
+  },
+  "permissions": [
+    "launchPython"
+  ],
+  "scripts": [
+    "common.js",
+    "msparser.js",
+    "parser.js"
+  ]
+}
