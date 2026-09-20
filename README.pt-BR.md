@@ -52,8 +52,6 @@ O UUID interno continua como `fitgirl-ddl-ng-fdm` para que usuários das versõe
 
 Na página FitGirl, localize **Download Mirrors (Direct Links)**. Clique com o botão direito em **Filehoster: FuckingFast** e escolha **Copiar endereço do link**.
 
-![Copiar o link do FuckingFast](docs/images/01-copy-fuckingfast-link.png)
-
 O endereço copiado normalmente tem este formato:
 
 ```text
@@ -64,23 +62,15 @@ https://paste.fitgirl-repacks.site/?xxxxxxxxxxxxxxxx#xxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 Abra o Free Download Manager, clique em **Adicionar download**, cole o link e pressione **OK**.
 
-![Adicionar o link ao FDM](docs/images/02-add-download-to-fdm.png)
-
 ### 3. Selecione os arquivos
 
 A extensão irá expandir o espelho e mostrar as partes disponíveis. Selecione todos os arquivos ou somente os que desejar e clique em **BAIXAR**.
-
-![Selecionar os arquivos e baixar](docs/images/03-select-files-and-download.png)
 
 ### 4. Pressione Mostrar downloads
 
 Inicialmente o FDM agrupa os arquivos selecionados em uma entrada. Clique com o botão direito nessa entrada e escolha **Mostrar downloads**.
 
-![Mostrar downloads](docs/images/04-show-downloads.png)
-
 Os arquivos `.rar` serão exibidos separadamente, cada um baixando através do link FuckingFast resolvido pela extensão.
-
-![Downloads individuais no FDM](docs/images/05-individual-downloads.png)
 
 ## Primeira execução
 
@@ -106,8 +96,6 @@ build/
 ├── build.ps1
 ├── build.bat
 └── build.sh
-
-docs/images/            Imagens do guia
 ```
 
 O arquivo `.fda` é um pacote compatível com ZIP, contendo `manifest.json` diretamente na raiz.
@@ -140,7 +128,7 @@ FTGirl-DDL-FDM-v1.0.0.fda
 
 ## Arquivos da Release
 
-A Release estável deve conter:
+A Release estável contém:
 
 - `FTGirl-DDL-FDM-v1.0.0.fda` — extensão instalável no Free Download Manager.
 - `FTGirl-DDL-FDM-v1.0.0-source.zip` — código-fonte completo da mesma versão.
