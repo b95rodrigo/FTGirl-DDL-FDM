@@ -150,11 +150,3 @@ O conceito do backend e o projeto original **fitgirl-ddl-ng** foram criados por 
 - Projeto original: **[mokurin000/fitgirl-ddl-ng](https://github.com/mokurin000/fitgirl-ddl-ng)**
 
 O FTGirl DDL FDM adapta esse trabalho para o formato de add-on do Free Download Manager e adiciona a integração específica de playlist/parser do FDM, tratamento do PrivateBin e fluxo de download arquivo por arquivo.
-
-## Licença
-
-Este projeto é distribuído sob a licença MIT. Consulte [LICENSE](LICENSE). O aviso de copyright e a licença do projeto original são preservados.
-
-## Aviso
-
-Este é um projeto independente de compatibilidade e não possui afiliação, endosso ou manutenção oficial do Free Download Manager, FitGirl ou FuckingFast. Utilize somente para conteúdos que você tenha direito legal de baixar.
