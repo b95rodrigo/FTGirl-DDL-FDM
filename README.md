@@ -52,7 +52,7 @@ The internal add-on UUID is intentionally kept as `fitgirl-ddl-ng-fdm` so users 
 
 On the FitGirl release page, find **Download Mirrors (Direct Links)**. Right-click **Filehoster: FuckingFast** and choose **Copy link address**.
 
-![Copy the FuckingFast mirror link](docs/images/01-copy-fuckingfast-link.png)
+![Copy the FuckingFast mirror link](docs/images/01-copy-fuckingfast-link.webp)
 
 The copied URL usually looks like this:
 
