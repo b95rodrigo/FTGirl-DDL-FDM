@@ -1,0 +1,48 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'plugin/manifest.json'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read version
+        id: version
+        shell: bash
+        run: |
+          VERSION="$(python3 -c 'import json; print(json.load(open("plugin/manifest.json"))["version"])')"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Build FDA package
+        shell: bash
+        run: bash build/build.sh
+
+      - name: Build source archive
+        shell: bash
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          git archive --format=zip --prefix="FTGirl-DDL-FDM-v${VERSION}/"             --output="FTGirl-DDL-FDM-v${VERSION}-source.zip" HEAD
+
+      - name: Create or update GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: FTGirl DDL FDM v${{ steps.version.outputs.version }}
+          body_path: RELEASE_NOTES.md
+          files: |
+            FTGirl-DDL-FDM-v${{ steps.version.outputs.version }}.fda
+            FTGirl-DDL-FDM-v${{ steps.version.outputs.version }}-source.zip
