@@ -9,7 +9,7 @@ First stable release of **FTGirl DDL FDM**.
 - Resolves each FuckingFast direct URL only when that file starts downloading.
 - Decrypts PrivateBin data locally.
 - Keeps the previous `fitgirl-ddl-ng-fdm` internal UUID for a clean upgrade from development builds.
-- Includes full English and PT-BR documentation with screenshots.
+- Includes complete English and PT-BR documentation with step-by-step installation and usage instructions.
 
 ## Release assets
 
