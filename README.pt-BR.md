@@ -76,7 +76,7 @@ A extensão irá expandir o espelho e mostrar as partes disponíveis. Selecione 
 
 Inicialmente o FDM agrupa os arquivos selecionados em uma entrada. Clique com o botão direito nessa entrada e escolha **Mostrar downloads**.
 
-![Mostrar downloads](docs/images/04-show-downloads.webp)
+![Mostrar downloads](docs/images/04-show-downloads-v2.webp)
 
 Os arquivos `.rar` serão exibidos separadamente, cada um baixando através do link FuckingFast resolvido pela extensão.
 

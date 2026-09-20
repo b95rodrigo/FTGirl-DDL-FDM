@@ -76,7 +76,7 @@ FTGirl DDL FDM will expand the mirror into the available parts. Select all files
 
 FDM initially groups the selected parts under one download entry. Right-click that entry and choose **Show downloads**.
 
-![Use Show downloads](docs/images/04-show-downloads.webp)
+![Use Show downloads](docs/images/04-show-downloads-v2.webp)
 
 Each selected `.rar` part is then displayed separately and downloaded through its resolved FuckingFast URL.
 
