@@ -13,7 +13,7 @@ All notable changes to FTGirl DDL FDM are documented in this file.
 - Support for individual FuckingFast links and FitGirl page fallback flows.
 - English README as the primary documentation.
 - Complete PT-BR documentation in `README.pt-BR.md`.
-- Illustrated step-by-step FDM installation and usage guide.
+- Step-by-step FDM installation and usage guide.
 - Reproducible Windows, Linux and macOS packaging scripts.
 
 ### Compatibility
