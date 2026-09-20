@@ -7,17 +7,12 @@ on:
     paths:
       - 'plugin/manifest.json'
   workflow_dispatch:
-  issues:
-    types:
-      - opened
 
 permissions:
   contents: write
-  issues: write
 
 jobs:
   build-release:
-    if: github.event_name != 'issues' || github.event.issue.title == 'Release v1.0.0'
     runs-on: ubuntu-latest
 
     steps:
