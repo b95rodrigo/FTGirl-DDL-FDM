@@ -7,13 +7,19 @@ on:
     paths:
       - 'plugin/manifest.json'
   workflow_dispatch:
+  issues:
+    types:
+      - opened
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   build-release:
+    if: github.event_name != 'issues' || github.event.issue.title == 'Release v1.0.0'
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -34,7 +40,7 @@ jobs:
         shell: bash
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          git archive --format=zip --prefix="FTGirl-DDL-FDM-v${VERSION}/"             --output="FTGirl-DDL-FDM-v${VERSION}-source.zip" HEAD
+          git archive             --format=zip             --prefix="FTGirl-DDL-FDM-v${VERSION}/"             --output="FTGirl-DDL-FDM-v${VERSION}-source.zip"             HEAD
 
       - name: Create or update GitHub Release
         uses: softprops/action-gh-release@v2
