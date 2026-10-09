@@ -23,7 +23,7 @@ from urllib.parse import unquote, urldefrag, urlparse
 UPSTREAM_VERSION = "0.4.12"
 ZENDRIVER_VERSION = "0.17.1"
 PYCRYPTODOME_VERSION = "3.23.0"
-DEPENDENCY_DIR = Path(tempfile.gettempdir()) / "ftgirl-ddl-fdm" / "pydeps"
+DEPENDENCY_DIR = Path(tempfile.gettempdir()) / "ftgirl-ddl-fdm" / "pydeps-fitgirl-ng-0.4.12"
 PROFILE_DIR = Path(tempfile.gettempdir()) / "ftgirl-ddl-fdm" / "browser-profile"
 FF_RE = re.compile(r"https?://(?:www\.)?fuckingfast\.co/[^\s\"'<>]+", re.I)
 SUFFIX_RE = re.compile(r"\.part\d+\.rar$|\.rar$", re.I)
@@ -113,8 +113,12 @@ def _validated_host(url: str, allowed_hosts: set[str]) -> str:
 def is_ff_page(url: str) -> bool:
     try:
         _validated_host(url, {"fuckingfast.co", "www.fuckingfast.co"})
-        path = urlparse(url).path
-        return bool(path.strip("/")) and not path.lower().startswith("/dl/")
+        parts = [p for p in urlparse(url).path.split("/") if p]
+        if len(parts) == 1:
+            return bool(re.fullmatch(r"[A-Za-z0-9_-]+", parts[0]))
+        if len(parts) == 2 and parts[0].lower() == "f":
+            return bool(re.fullmatch(r"[A-Za-z0-9_-]+", parts[1]))
+        return False
     except ValueError:
         return False
 
