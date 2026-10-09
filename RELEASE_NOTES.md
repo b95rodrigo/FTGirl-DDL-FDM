@@ -1,22 +1,26 @@
-# FTGirl DDL FDM v1.0.0
+# FTGirl DDL FDM v1.1.0
 
-First stable release of **FTGirl DDL FDM**.
+Integration update tracking **fitgirl-ddl-ng v0.4.12** (2026-10-02, commit `7fc99c35`).
 
 ## Highlights
 
-- Expands FitGirl `paste.fitgirl-repacks.site` FuckingFast mirrors directly inside Free Download Manager.
-- Lets you select all parts or only the files you want before starting the download.
-- Resolves each FuckingFast direct URL only when that file starts downloading.
-- Decrypts PrivateBin data locally.
-- Keeps the previous `fitgirl-ddl-ng-fdm` internal UUID for a clean upgrade from development builds.
-- Includes complete English and PT-BR documentation with step-by-step installation and usage instructions.
+- Zendriver 0.17.1 / Python 3.11+ compatibility.
+- Updated FitGirl spoiler selectors and the FuckingFast HTMX redirect request.
+- Browser retry/backoff and better handling of network failures.
+- PrivateBin HTTP-to-browser fallback and validation of source hosts.
+- Retained FDM playlist selection and per-file, on-demand URL resolution.
+- Python unit tests and CI checks.
+- Upstream MIT license text included with the adapted work.
 
 ## Release assets
 
-- `FTGirl-DDL-FDM-v1.0.0.fda`
-- `FTGirl-DDL-FDM-v1.0.0-source.zip`
+- `FTGirl-DDL-FDM-v1.1.0.fda`
+- `FTGirl-DDL-FDM-v1.1.0-source.zip`
 
-## Credit
+## Note
 
-Backend concept and original project by [mokurin000](https://github.com/mokurin000):
-[fitgirl-ddl-ng](https://github.com/mokurin000/fitgirl-ddl-ng).
+This is an FDM-specific integration of the upstream resolver behavior, **not** a copy of its standalone GUI/CLI. Browser- and network-dependent workflows require real-world testing on Windows with FDM.
+
+## Credits
+
+Original project by [mokurin000](https://github.com/mokurin000/fitgirl-ddl-ng).

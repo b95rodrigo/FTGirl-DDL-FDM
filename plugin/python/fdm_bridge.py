@@ -4,6 +4,7 @@ import asyncio
 import base64
 import http.cookiejar
 import importlib
+import importlib.metadata
 import json
 import os
 import re
@@ -19,9 +20,10 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import unquote, urldefrag, urlparse
 
-ZENDRIVER_VERSION = "0.16.0"
+UPSTREAM_VERSION = "0.4.12"
+ZENDRIVER_VERSION = "0.17.1"
 PYCRYPTODOME_VERSION = "3.23.0"
-DEPENDENCY_DIR = Path(tempfile.gettempdir()) / "ftgirl-ddl-fdm" / "pydeps"
+DEPENDENCY_DIR = Path(tempfile.gettempdir()) / "ftgirl-ddl-fdm" / "pydeps-fitgirl-ng-0.4.12"
 PROFILE_DIR = Path(tempfile.gettempdir()) / "ftgirl-ddl-fdm" / "browser-profile"
 FF_RE = re.compile(r"https?://(?:www\.)?fuckingfast\.co/[^\s\"'<>]+", re.I)
 SUFFIX_RE = re.compile(r"\.part\d+\.rar$|\.rar$", re.I)
@@ -33,53 +35,50 @@ def emit(payload: dict[str, Any], exit_code: int = 0) -> None:
     raise SystemExit(exit_code)
 
 
-def _ensure_dependency(import_name: str, package_spec: str):
-    try:
-        return importlib.import_module(import_name)
-    except Exception:
-        pass
-
+def _ensure_dependency(import_name: str, distribution_name: str, required_version: str):
+    """Install the audited dependency version in an isolated, reusable directory."""
     DEPENDENCY_DIR.mkdir(parents=True, exist_ok=True)
     if str(DEPENDENCY_DIR) not in sys.path:
         sys.path.insert(0, str(DEPENDENCY_DIR))
     importlib.invalidate_caches()
+
     try:
-        return importlib.import_module(import_name)
-    except Exception:
+        installed = importlib.metadata.version(distribution_name)
+        if installed == required_version:
+            return importlib.import_module(import_name)
+    except (importlib.metadata.PackageNotFoundError, ImportError, ModuleNotFoundError):
         pass
 
+    package_spec = f"{distribution_name}=={required_version}"
     cmd = [
-        sys.executable,
-        "-m",
-        "pip",
-        "install",
-        "--disable-pip-version-check",
-        "--no-input",
-        "--upgrade",
-        "--target",
-        str(DEPENDENCY_DIR),
-        package_spec,
+        sys.executable, "-m", "pip", "install",
+        "--disable-pip-version-check", "--no-input", "--upgrade",
+        "--target", str(DEPENDENCY_DIR), package_spec,
     ]
     proc = subprocess.run(cmd, capture_output=True, text=True, timeout=300, shell=False)
     if proc.returncode != 0:
         detail = (proc.stderr or proc.stdout or "pip install failed")[-1600:]
         raise RuntimeError(f"Could not install {package_spec}: {detail.strip()}")
 
-    if str(DEPENDENCY_DIR) not in sys.path:
-        sys.path.insert(0, str(DEPENDENCY_DIR))
+    # The bridge is a fresh Python process for each FDM parse. Invalidate disk
+    # caches after installation; do not rely on a potentially older global copy.
     importlib.invalidate_caches()
+    installed = importlib.metadata.version(distribution_name)
+    if installed != required_version:
+        raise RuntimeError(
+            f"Expected {package_spec}, found {distribution_name}=={installed}"
+        )
     return importlib.import_module(import_name)
 
 
 def ensure_zendriver():
-    return _ensure_dependency("zendriver", f"zendriver=={ZENDRIVER_VERSION}")
+    return _ensure_dependency("zendriver", "zendriver", ZENDRIVER_VERSION)
 
 
 def ensure_crypto_aes():
-    _ensure_dependency("Crypto", f"pycryptodome=={PYCRYPTODOME_VERSION}")
+    _ensure_dependency("Crypto", "pycryptodome", PYCRYPTODOME_VERSION)
     from Crypto.Cipher import AES  # type: ignore
     return AES
-
 
 def filename_from_url(url: str) -> str:
     parsed = urlparse(url)
@@ -98,19 +97,45 @@ def title_from_items(items: list[str], fallback: str = "FTGirl Download") -> str
     return name or fallback
 
 
+def _validated_host(url: str, allowed_hosts: set[str]) -> str:
+    parsed = urlparse(url)
+    if (
+        parsed.scheme != "https"
+        or (parsed.hostname or "").lower() not in allowed_hosts
+        or parsed.username is not None
+        or parsed.password is not None
+        or parsed.port is not None
+    ):
+        raise ValueError("Only HTTPS URLs for supported hosts are allowed")
+    return (parsed.hostname or "").lower()
+
+
+def is_ff_page(url: str) -> bool:
+    try:
+        _validated_host(url, {"fuckingfast.co", "www.fuckingfast.co"})
+        parts = [p for p in urlparse(url).path.split("/") if p]
+        if len(parts) == 1:
+            return bool(re.fullmatch(r"[A-Za-z0-9_-]+", parts[0]))
+        if len(parts) == 2 and parts[0].lower() == "f":
+            return bool(re.fullmatch(r"[A-Za-z0-9_-]+", parts[1]))
+        return False
+    except ValueError:
+        return False
+
+
 def extract_file_id(url: str) -> str:
-    path = urlparse(url).path.strip("/")
-    if not path:
-        raise ValueError("FuckingFast URL has no file id")
-    parts = [p for p in path.split("/") if p]
-    if len(parts) >= 2 and parts[0].lower() == "f":
+    if not is_ff_page(url):
+        raise ValueError("Invalid FuckingFast page URL")
+    parts = [p for p in urlparse(url).path.split("/") if p]
+    if len(parts) == 2 and parts[0].lower() == "f":
         candidate = parts[1]
-    else:
+    elif len(parts) == 1:
         candidate = parts[0]
+    else:
+        raise ValueError("Unsupported FuckingFast file URL path")
     if not re.fullmatch(r"[A-Za-z0-9_-]+", candidate):
         raise ValueError("Invalid FuckingFast file id")
     return candidate
-
 
 def _base58_decode(value: str) -> bytes:
     n = 0
@@ -455,61 +480,65 @@ async def scrape_paste_browser(tab, url: str) -> list[str]:
 
 
 async def scrape_fitgirl_post(tab, url: str) -> list[str]:
+    """Adapt the 0.4.12 selectors, keeping PrivateBin fallback for FDM."""
+    _validated_host(url, {"fitgirl-repacks.site", "www.fitgirl-repacks.site"})
     await tab.get(url)
     try:
-        await tab.wait_for("article.post", timeout=60)
-    except Exception:
+        await tab.wait_for("article.post", timeout=120)
+    except TimeoutError:
         await wait_page(tab)
 
-    ff_root = "div.entry-content ul > li:nth-child(2)"
-    single_selector = ff_root + " > a"
-    spoiler_selector = ff_root + " > div.su-spoiler > div.su-spoiler-content"
-
-    direct_or_paste: list[str] = []
+    single_selector = "div.entry-content ul > li:nth-child(2) > a"
+    # Upstream 0.4.12 searches spoiler anchors throughout the article, not
+    # exclusively inside the second list item.
+    spoiler_selector = "div.su-spoiler > div.su-spoiler-content > a"
+    mirror_links: list[str] = []
     try:
         anchors = await tab.query_selector_all(single_selector)
-        anchors = [a for a in anchors if "Filehoster: FuckingFast" in (a.text_all or "")]
-        if anchors:
-            href = anchors[0].attrs.get("href")
-            if href:
-                direct_or_paste.append(str(href))
+        for tag in anchors:
+            if "Filehoster: FuckingFast" in str(tag.text_all or ""):
+                href = tag.attrs.get("href")
+                if href:
+                    mirror_links.append(str(href))
 
         spoilers = await tab.query_selector_all(spoiler_selector)
-        spoiler_urls: list[str] = []
-        for spoiler in spoilers:
-            for tag in await spoiler.query_selector_all("a"):
-                href = tag.attrs.get("href")
-                if href and "fuckingfast.co/" in str(href).lower():
-                    spoiler_urls.append(str(href))
+        spoiler_urls = [
+            str(href) for tag in spoilers
+            if (href := tag.attrs.get("href")) and is_ff_page(str(href))
+        ]
         if spoiler_urls:
             return sorted(set(spoiler_urls), key=lambda u: urlparse(u).fragment)
     except Exception:
+        # FitGirl sometimes publishes malformed HTML; inspect page links below.
         pass
 
-    text, links = await page_text_and_links(tab)
-    ff_links = [link for link in links if "fuckingfast.co/" in link.lower()]
-    ff_links.extend(FF_RE.findall(text))
+    # For single-file posts, the mirror itself is often a FuckingFast URL.
+    ff_mirrors = [link for link in mirror_links if is_ff_page(link)]
+    if ff_mirrors:
+        return list(dict.fromkeys(ff_mirrors))
+
+    page_text, page_links = await page_text_and_links(tab)
+    ff_links = [link for link in page_links if is_ff_page(link)]
+    ff_links.extend(link for link in FF_RE.findall(page_text) if is_ff_page(link))
     if ff_links:
         return list(dict.fromkeys(ff_links))
 
-    paste_links = [
-        link for link in direct_or_paste + links
-        if "paste.fitgirl-repacks.site/" in link.lower()
+    pastes = [
+        link for link in mirror_links + page_links
+        if (urlparse(link).hostname or "").lower() == "paste.fitgirl-repacks.site"
     ]
-    if paste_links:
+    if pastes:
         try:
-            return scrape_paste_http(paste_links[0])
+            return scrape_paste_http(pastes[0])
         except Exception:
-            return await scrape_paste_browser(tab, paste_links[0])
-
+            return await scrape_paste_browser(tab, pastes[0])
     raise RuntimeError("Filehoster: FuckingFast links were not found on the FitGirl page")
 
-
 async def extract_direct_browser(tab, original_url: str) -> str:
+    """Resolve a selected file using the upstream 0.4.12 HTMX POST contract."""
     file_id = extract_file_id(original_url)
     go_url = f"https://fuckingfast.co/f/{file_id}/go"
-
-    expr = f"""
+    expression = f"""
     fetch({json.dumps(go_url)}, {{
         method: "POST",
         headers: {{
@@ -522,33 +551,40 @@ async def extract_direct_browser(tab, original_url: str) -> str:
     }}).then(response => ({{
         status: response.status,
         headers: Object.fromEntries(response.headers.entries())
-    }}))
+    }})).catch(error => ({{status: 0, headers: {{}}, error: String(error)}}))
     """
 
-    last_status = None
-    for attempt in range(3):
-        result = await tab.evaluate(expr, await_promise=True, return_by_value=True)
-        if isinstance(result, dict):
-            last_status = result.get("status")
-            headers = result.get("headers") or {}
-            direct = headers.get("hx-redirect") or headers.get("HX-Redirect")
-            if direct:
-                return str(direct)
+    last_error = "no HTTP response"
+    for attempt in range(5):
+        try:
+            result = await tab.evaluate(
+                expression, await_promise=True, return_by_value=True
+            )
+            if isinstance(result, dict):
+                status = result.get("status")
+                headers = result.get("headers") or {}
+                direct = headers.get("hx-redirect") or headers.get("HX-Redirect")
+                if isinstance(direct, str) and direct.startswith(("https://", "http://")):
+                    return direct
+                last_error = f"status={status}, detail={result.get('error', 'no HX-Redirect')}"
+            else:
+                last_error = "unexpected browser response"
+        except Exception as exc:
+            last_error = f"{type(exc).__name__}: {exc}"
 
         if attempt == 0:
+            # Browser cookie/session warm-up only if the first request failed.
             try:
                 await tab.get(original_url)
                 await wait_page(tab, 45)
-                await asyncio.sleep(2)
                 await tab.get("https://fuckingfast.co")
                 await wait_page(tab, 45)
             except Exception:
                 pass
-        else:
-            await asyncio.sleep(1.5)
+        if attempt < 4:
+            await asyncio.sleep(min(2 ** attempt, 16))
 
-    raise RuntimeError(f"FuckingFast did not return HX-Redirect (last status={last_status})")
-
+    raise RuntimeError(f"FuckingFast /go failed after 5 attempts ({last_error})")
 
 def resolve_many_http(urls: list[str]) -> tuple[list[dict[str, str]], list[tuple[str, str]]]:
     resolved: list[dict[str, str]] = []
@@ -607,17 +643,24 @@ async def resolve_one(url: str) -> dict[str, Any]:
 
 
 async def resolve_source(url: str) -> dict[str, Any]:
-    host = (urlparse(url).hostname or "").lower()
+    parsed = urlparse(url)
+    host = (parsed.hostname or "").lower()
     source_urls: list[str]
 
     if host == "paste.fitgirl-repacks.site":
-        # Only discover/decrypt the list at playlist stage. Do NOT resolve
-        # FuckingFast to direct URLs here: FDM will pass each playlist entry
-        # to msParser when the user selects it for download. This is both the
-        # expected FDM mediaListParser contract and prevents signed links from
-        # expiring before a selected download is actually created.
-        source_urls = scrape_paste_http(url)
+        _validated_host(url, {"paste.fitgirl-repacks.site"})
+        # Preserve the FDM contract: never resolve signed URLs in playlist stage.
+        try:
+            source_urls = scrape_paste_http(url)
+        except Exception:
+            browser = await start_browser()
+            try:
+                tab = await browser.get("about:blank")
+                source_urls = await scrape_paste_browser(tab, url)
+            finally:
+                await browser.stop()
     elif host in {"fitgirl-repacks.site", "www.fitgirl-repacks.site"}:
+        _validated_host(url, {"fitgirl-repacks.site", "www.fitgirl-repacks.site"})
         browser = await start_browser()
         try:
             tab = await browser.get("about:blank")
@@ -625,45 +668,37 @@ async def resolve_source(url: str) -> dict[str, Any]:
         finally:
             await browser.stop()
     elif host in {"fuckingfast.co", "www.fuckingfast.co"}:
+        if not is_ff_page(url):
+            raise ValueError("Invalid FuckingFast page URL")
         source_urls = [url]
     else:
         raise ValueError("Unsupported source URL")
 
-    source_urls = [
-        u for u in source_urls
-        if "fuckingfast.co/" in u.lower() and "/dl/" not in u.lower()
-    ]
-    source_urls = list(dict.fromkeys(source_urls))
+    source_urls = list(dict.fromkeys(u for u in source_urls if is_ff_page(u)))
     if not source_urls:
         raise RuntimeError("No FuckingFast page URLs were found")
-
-    items = [
-        {
-            "source_url": u,
-            "filename": filename_from_url(u),
-        }
-        for u in source_urls
-    ]
 
     return {
         "ok": True,
         "title": title_from_items(source_urls),
-        "items": items,
+        "items": [
+            {"source_url": u, "filename": filename_from_url(u)}
+            for u in source_urls
+        ],
         "warnings": [],
     }
 
-
 def main() -> None:
-    if sys.version_info < (3, 10):
-        emit({"ok": False, "error": "Python 3.10 or newer is required"}, 1)
+    if sys.version_info < (3, 11):
+        emit({"ok": False, "error": "Python 3.11 or newer is required (fitgirl-ddl-ng 0.4.12)"}, 1)
 
     if len(sys.argv) < 3:
         emit({"ok": False, "error": "Usage: fdm_bridge.py resolve-one|resolve-source URL"}, 1)
 
     command = sys.argv[1]
     url = sys.argv[2].strip()
-    if not url.startswith(("http://", "https://")):
-        emit({"ok": False, "error": "Invalid URL"}, 1)
+    if not url.startswith("https://"):
+        emit({"ok": False, "error": "Only HTTPS URLs are supported"}, 1)
 
     try:
         if command == "resolve-one":
