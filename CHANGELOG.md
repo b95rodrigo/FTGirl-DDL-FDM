@@ -2,6 +2,18 @@
 
 All notable changes to FTGirl DDL FDM are documented in this file.
 
+## [1.1.0] - 2026-10-09
+
+### Upstream sync
+
+- Adapted parser behavior to `mokurin000/fitgirl-ddl-ng` **0.4.12** (upstream commit `7fc99c35`).
+- Bumped runtime compatibility to Python 3.11+ and Zendriver 0.17.1.
+- Adopted the current `POST /f/{id}/go` HTMX response contract and added resilient browser retries/backoff.
+- Updated FitGirl spoiler link collection to match upstream page selectors.
+- Added PrivateBin HTTP-to-browser fallback and stricter supported-host validation.
+- Preserved on-demand link resolution and FDM playlist selection.
+- Added Python unit tests, PR validation workflow and upstream MIT attribution.
+
 ## [1.0.0] - 2026-09-20
 
 ### Added

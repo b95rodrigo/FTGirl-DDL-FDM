@@ -2,8 +2,8 @@
   "uuid": "fitgirl-ddl-ng-fdm",
   "author": "b95rodrigo",
   "name": "FTGirl DDL FDM",
-  "description": "Free Download Manager add-on that expands FitGirl FuckingFast mirror lists and resolves selected files on demand.",
-  "version": "1.0.0",
+  "description": "FDM add-on for FitGirl FuckingFast mirrors, aligned with fitgirl-ddl-ng 0.4.12.",
+  "version": "1.1.0",
   "icon": "icon.svg",
   "mediaParser": true,
   "mediaListParser": true,
@@ -12,7 +12,7 @@
   "targetApiVersion": 9,
   "dependencies": {
     "Python": {
-      "minVersion": "3.10"
+      "minVersion": "3.11"
     }
   },
   "permissions": [

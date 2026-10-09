@@ -1,0 +1,47 @@
+name: Validate FDM extension
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Compile Python bridge
+        run: python -m py_compile plugin/python/fdm_bridge.py
+      - name: Unit tests
+        run: python -m unittest discover -s tests -v
+      - name: JavaScript syntax
+        run: |
+          node --check plugin/common.js
+          node --check plugin/parser.js
+          node --check plugin/msparser.js
+      - name: FDA packaging smoke test
+        run: |
+          bash build/build.sh
+          python - <<'PY'
+          import json, pathlib, zipfile
+          version = json.loads(pathlib.Path("plugin/manifest.json").read_text())["version"]
+          target = pathlib.Path(f"FTGirl-DDL-FDM-v{version}.fda")
+          with zipfile.ZipFile(target) as pkg:
+              files = set(pkg.namelist())
+              assert "manifest.json" in files
+              assert "python/fdm_bridge.py" in files
+              assert "msparser.js" in files
+              assert pkg.testzip() is None
+          print("FDA archive verified:", target)
+          PY
