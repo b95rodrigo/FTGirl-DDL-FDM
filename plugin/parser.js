@@ -6,7 +6,7 @@ var msBatchVideoParser = (function()
         parse: function(obj)
         {
             var url = String(obj.url);
-            console.log("FTGirl DDL FDM: resolving source URL: " + url);
+            console.log("FTGirl DDL FDM: resolving source list");
 
             return fgLaunchBridge(obj, ["resolve-source", url])
                 .then(function(data)

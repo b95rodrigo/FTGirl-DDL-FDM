@@ -4,6 +4,8 @@ from __future__ import annotations
 import asyncio
 import importlib.util
 import json
+import gzip
+import urllib.error
 import sys
 import tempfile
 from pathlib import Path
@@ -112,15 +114,46 @@ class BridgeTests(TestCase):
             data = asyncio.run(bridge.resolve_one(FF))
         self.assertEqual(data["items"][0]["direct_url"], "https://cdn.example.net/file")
 
-    def test_browser_fallback_for_paste(self):
-        fake_tab = object()
-        fake_browser = SimpleNamespace(get=AsyncMock(return_value=fake_tab), stop=AsyncMock())
+    def test_paste_failure_never_launches_browser(self):
         with patch.object(bridge, "scrape_paste_http", side_effect=OSError("blocked")):
-            with patch.object(bridge, "start_browser", new=AsyncMock(return_value=fake_browser)):
-                with patch.object(bridge, "scrape_paste_browser", new=AsyncMock(return_value=[FF])):
-                    data = asyncio.run(bridge.resolve_source(PASTE))
-        self.assertEqual(data["items"][0]["source_url"], FF)
+            with patch.object(bridge, "start_browser", new=AsyncMock()) as launch:
+                with self.assertRaisesRegex(RuntimeError, "PrivateBin list could not be read locally.*blocked"):
+                    asyncio.run(bridge.resolve_source(PASTE))
+                launch.assert_not_awaited()
+
+    def test_browser_cleanup_does_not_mask_original_error(self):
+        fake_browser = SimpleNamespace(stop=AsyncMock(side_effect=RuntimeError("no close frame received or sent")))
+        asyncio.run(bridge.stop_browser_safely(fake_browser))
         fake_browser.stop.assert_awaited_once()
+
+    def test_api_accepts_gzip_and_never_sends_fragment(self):
+        from unittest.mock import MagicMock
+        response = MagicMock()
+        response.__enter__.return_value = response
+        response.headers = {"Content-Encoding": "gzip"}
+        response.read.return_value = gzip.compress(b'{"status":0,"ct":"fixture"}')
+        with patch.object(bridge, "_http_open", return_value=response) as fetch:
+            self.assertEqual(bridge.fetch_privatebin_json(PASTE)["ct"], "fixture")
+        req = fetch.call_args.args[0]
+        self.assertNotIn("#", req.full_url)
+        self.assertEqual(req.get_header("X-requested-with"), "JSONHttpRequest")
+
+    def test_api_retries_transient_network_failure(self):
+        from unittest.mock import MagicMock
+        response = MagicMock()
+        response.__enter__.return_value = response
+        response.headers = {}
+        response.read.return_value = b'{"status":0}'
+        with patch.object(bridge, "_http_open", side_effect=[urllib.error.URLError("temporary"), response]) as fetch:
+            with patch.object(bridge.time, "sleep"):
+                self.assertEqual(bridge.fetch_privatebin_json(PASTE), {"status": 0})
+        self.assertEqual(fetch.call_count, 2)
+
+    def test_no_supported_links_is_clear_error(self):
+        with patch.object(bridge, "fetch_privatebin_json", return_value={}):
+            with patch.object(bridge, "decrypt_privatebin", return_value="https://example.org/file"):
+                with self.assertRaisesRegex(RuntimeError, "no supported file links"):
+                    bridge.scrape_paste_http(PASTE)
 
     def test_five_browser_attempts_with_recovery(self):
         class FakeTab:

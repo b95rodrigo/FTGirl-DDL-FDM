@@ -2,7 +2,7 @@
 
 **FTGirl DDL FDM** is a Free Download Manager add-on that turns the **FuckingFast direct-link mirror** from FitGirl release pages into a selectable download list inside FDM.
 
-> Current version: **1.1.2**  
+> Current version: **1.1.3**  
 > Language: **English** · [Português (Brasil)](README.pt-BR.md)
 
 ## What it does
@@ -35,11 +35,11 @@ The direct URL is resolved only when each selected file starts, which helps avoi
 
 ## Install the FDM extension
 
-1. Download `FTGirl-DDL-FDM-v1.1.2.fda` from the project release.
+1. Download `FTGirl-DDL-FDM-v1.1.3.fda` from the project release.
 2. Open **Free Download Manager**.
 3. Open the FDM menu and go to **Add-ons**.
 4. Choose **Install add-on from file...**.
-5. Select `FTGirl-DDL-FDM-v1.1.2.fda`.
+5. Select `FTGirl-DDL-FDM-v1.1.3.fda`.
 6. Allow the `launchPython` permission when FDM asks for it.
 7. If FDM offers to install Python, allow it.
 8. Restart FDM after installation.
@@ -133,17 +133,17 @@ bash build/build.sh
 The build produces:
 
 ```text
-FTGirl-DDL-FDM-v1.1.2.fda
+FTGirl-DDL-FDM-v1.1.3.fda
 ```
 
 ## Release files
 
 A stable release contains:
 
-- `FTGirl-DDL-FDM-v1.1.2.fda` — installable Free Download Manager extension.
-- `FTGirl-DDL-FDM-v1.1.2-source.zip` — complete project source for the same version.
+- `FTGirl-DDL-FDM-v1.1.3.fda` — installable Free Download Manager extension.
+- `FTGirl-DDL-FDM-v1.1.3-source.zip` — complete project source for the same version.
 
-## Upstream compatibility (v1.1.2)
+## Upstream compatibility (v1.1.3)
 
 - This FDM adaptation tracks **fitgirl-ddl-ng v0.4.14** (released November 8, 2026) at [upstream commit `8dbe0984`](https://github.com/mokurin000/fitgirl-ddl-ng/commit/8dbe09842d92551027da44d808a548d40d178afc).
 - The Python bridge pins **Zendriver 0.17.1** and retains the upstream HTMX `POST /f/{id}/go` + `HX-Redirect` resolution contract.
@@ -160,3 +160,7 @@ The backend concept and original **fitgirl-ddl-ng** project were created by **[m
 - Upstream project: **[mokurin000/fitgirl-ddl-ng](https://github.com/mokurin000/fitgirl-ddl-ng)**
 
 FTGirl DDL FDM adapts that work to the Free Download Manager add-on format and adds the FDM-specific playlist/parser integration, PrivateBin handling and per-file download flow.
+
+### PrivateBin playlist troubleshooting (v1.1.3)
+
+PrivateBin lists use the local JSON API/decryption path only. No browser is opened for a pasted list URL; API, network and decryption failures are reported directly. Browser fallback remains available for other supported source types. Only download files you are authorized to obtain.

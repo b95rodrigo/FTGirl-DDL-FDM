@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import gzip
 import http.cookiejar
 import importlib
 import importlib.metadata
@@ -169,18 +170,36 @@ def fetch_privatebin_json(url: str) -> dict[str, Any]:
         request_url,
         headers={
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36",
-            "Accept": "application/json, text/javascript, */*; q=0.01",
+            "Accept": "application/json, application/ld+json, text/javascript, */*; q=0.01",
+            "Accept-Encoding": "identity",
             "X-Requested-With": "JSONHttpRequest",
             "Referer": request_url,
         },
     )
-    with _http_open(req) as resp:
-        body = resp.read(4 * 1024 * 1024)
+    # Use the documented JSON API. Never send the fragment (decryption key).
+    for attempt in range(3):
+        try:
+            with _http_open(req) as resp:
+                body = resp.read(4 * 1024 * 1024 + 1)
+                encoding = (resp.headers.get("Content-Encoding") or "").lower().strip()
+            break
+        except urllib.error.HTTPError as exc:
+            if exc.code not in (429, 500, 502, 503, 504) or attempt == 2:
+                raise RuntimeError(f"PrivateBin HTTP {exc.code}") from exc
+        except (urllib.error.URLError, TimeoutError, ConnectionError) as exc:
+            if attempt == 2:
+                raise RuntimeError(f"PrivateBin connection failed: {getattr(exc, 'reason', exc)}") from exc
+        time.sleep(2 ** attempt)
+    if len(body) > 4 * 1024 * 1024:
+        raise RuntimeError("PrivateBin response exceeds the supported size")
     try:
-        data = json.loads(body.decode("utf-8"))
-    except Exception as exc:
-        sample = body[:300].decode("utf-8", errors="replace")
-        raise RuntimeError("PrivateBin did not return JSON: " + sample) from exc
+        if encoding == "gzip" or body.startswith(b"\x1f\x8b"):
+            body = gzip.decompress(body)
+        elif encoding == "deflate":
+            body = zlib.decompress(body)
+        data = json.loads(body.decode("utf-8-sig"))
+    except (ValueError, OSError, zlib.error) as exc:
+        raise RuntimeError("PrivateBin API did not return valid JSON (server may have returned an HTML page)") from exc
     if not isinstance(data, dict):
         raise RuntimeError("PrivateBin returned an unexpected response")
     if data.get("status") not in (None, 0):
@@ -312,7 +331,10 @@ def scrape_paste_http(url: str) -> list[str]:
     payload = fetch_privatebin_json(url)
     plaintext = decrypt_privatebin(url, payload)
     links = [m.rstrip(".,);]") for m in FF_RE.findall(plaintext)]
-    return list(dict.fromkeys(links))
+    links = list(dict.fromkeys(link for link in links if is_ff_page(link)))
+    if not links:
+        raise RuntimeError("PrivateBin text contains no supported file links")
+    return links
 
 
 def resolve_direct_http(original_url: str) -> str:
@@ -437,6 +459,14 @@ async def start_browser():
             ) from second
 
 
+async def stop_browser_safely(browser) -> None:
+    try:
+        await browser.stop()
+    except Exception as exc:
+        # Cleanup must never replace a successful result or the original error.
+        print(f"Browser cleanup warning: {type(exc).__name__}: {exc}", file=sys.stderr)
+
+
 async def wait_page(tab, timeout: float = 60.0) -> None:
     try:
         await tab.wait_for_ready_state(until="complete", timeout=timeout)
@@ -534,10 +564,7 @@ async def scrape_fitgirl_post(tab, url: str) -> list[str]:
         if (urlparse(link).hostname or "").lower() == "paste.fitgirl-repacks.site"
     ]
     if pastes:
-        try:
-            return scrape_paste_http(pastes[0])
-        except Exception:
-            return await scrape_paste_browser(tab, pastes[0])
+        return scrape_paste_http(pastes[0])
     raise RuntimeError("Filehoster: FuckingFast links were not found on the FitGirl page")
 
 async def extract_direct_browser(tab, original_url: str) -> str:
@@ -633,7 +660,7 @@ async def resolve_failed_with_browser(failed: list[tuple[str, str]]) -> tuple[li
                 await asyncio.sleep(0.30)
         return resolved, warnings
     finally:
-        await browser.stop()
+        await stop_browser_safely(browser)
 
 
 async def resolve_one(url: str) -> dict[str, Any]:
@@ -658,13 +685,10 @@ async def resolve_source(url: str) -> dict[str, Any]:
         # Preserve the FDM contract: never resolve signed URLs in playlist stage.
         try:
             source_urls = scrape_paste_http(url)
-        except Exception:
-            browser = await start_browser()
-            try:
-                tab = await browser.get("about:blank")
-                source_urls = await scrape_paste_browser(tab, url)
-            finally:
-                await browser.stop()
+        except Exception as exc:
+            # A paste is a list, not a browser navigation request. Preserve
+            # the real API/decryption error instead of opening Chromium.
+            raise RuntimeError(f"PrivateBin list could not be read locally ({type(exc).__name__}): {exc}") from exc
     elif host in {"fitgirl-repacks.site", "www.fitgirl-repacks.site"}:
         _validated_host(url, {"fitgirl-repacks.site", "www.fitgirl-repacks.site"})
         browser = await start_browser()
@@ -672,7 +696,7 @@ async def resolve_source(url: str) -> dict[str, Any]:
             tab = await browser.get("about:blank")
             source_urls = await scrape_fitgirl_post(tab, url)
         finally:
-            await browser.stop()
+            await stop_browser_safely(browser)
     elif host in {"fuckingfast.co", "www.fuckingfast.co"}:
         if not is_ff_page(url):
             raise ValueError("Invalid FuckingFast page URL")

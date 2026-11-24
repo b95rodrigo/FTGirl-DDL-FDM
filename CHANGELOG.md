@@ -2,6 +2,15 @@
 
 All notable changes to FTGirl DDL FDM are documented in this file.
 
+## [1.1.3] - 2026-11-24
+
+### Fixed
+
+- Keep PrivateBin list parsing local; do not launch a browser on API or decryption failure.
+- Preserve the underlying failure message, retry transient HTTP errors, support compressed JSON responses and avoid logging the paste key in the batch parser.
+- Prevent browser cleanup errors from masking real results or failures in other flows.
+- Add regression tests for multi-file lists, API errors and browser cleanup; validate an encrypted synthetic playlist in Windows CI.
+
 ## [1.1.2] - 2026-11-24
 
 ### Fixed
