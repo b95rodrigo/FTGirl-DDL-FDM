@@ -1,25 +1,23 @@
-# FTGirl DDL FDM v1.1.0
+# FTGirl DDL FDM v1.1.1
 
-Integration update tracking **fitgirl-ddl-ng v0.4.12** (2026-10-02, commit `7fc99c35`).
+Integration update tracking **fitgirl-ddl-ng v0.4.14** (2026-11-08, commit [`8dbe0984`](https://github.com/mokurin000/fitgirl-ddl-ng/commit/8dbe09842d92551027da44d808a548d40d178afc)).
 
 ## Highlights
 
-- Zendriver 0.17.1 / Python 3.11+ compatibility.
-- Updated FitGirl spoiler selectors and the FuckingFast HTMX redirect request.
-- Browser retry/backoff and better handling of network failures.
-- PrivateBin HTTP-to-browser fallback and validation of source hosts.
-- Retained FDM playlist selection and per-file, on-demand URL resolution.
-- Python unit tests and CI checks.
-- Upstream MIT license text included with the adapted work.
+- Accept nested links inside spoiler content, including links wrapped in paragraphs.
+- Regression coverage for nested links, ordering, duplicate links and unsupported hosts.
+- Retain Python 3.11+, Zendriver 0.17.1 and the existing dependency cache.
+- Preserve the add-on UUID, FDM playlist selection, on-demand resolution and local PrivateBin support.
+- No new runtime dependencies or telemetry. Standalone GUI-only changes are not applicable.
 
 ## Release assets
 
-- `FTGirl-DDL-FDM-v1.1.0.fda`
-- `FTGirl-DDL-FDM-v1.1.0-source.zip`
+- `FTGirl-DDL-FDM-v1.1.1.fda`
+- `FTGirl-DDL-FDM-v1.1.1-source.zip`
 
 ## Note
 
-This is an FDM-specific integration of the upstream resolver behavior, **not** a copy of its standalone GUI/CLI. Browser- and network-dependent workflows require real-world testing on Windows with FDM.
+Browser- and network-dependent workflows require real-world testing on Windows with FDM. Only download files you are authorized to obtain.
 
 ## Credits
 

@@ -23,7 +23,7 @@ PASTE = "https://paste.fitgirl-repacks.site/?abcdef#key"
 
 class UrlTests(TestCase):
     def test_upstream_version(self):
-        self.assertEqual(bridge.UPSTREAM_VERSION, "0.4.12")
+        self.assertEqual(bridge.UPSTREAM_VERSION, "0.4.14")
         self.assertEqual(bridge.ZENDRIVER_VERSION, "0.17.1")
 
     def test_filename(self):
@@ -110,13 +110,14 @@ class BridgeTests(TestCase):
         self.assertEqual(tab.calls, 5)
         self.assertIn("https://fuckingfast.co", tab.visited)
 
-    def test_spoiler_selector_from_upstream(self):
+    def test_nested_spoiler_selector_from_upstream(self):
         class Tag:
             def __init__(self, href, text=""):
                 self.attrs = {"href": href}
                 self.text_all = text
         class FakeTab:
-            selectors = []
+            def __init__(self):
+                self.selectors = []
             async def get(self, url):
                 pass
             async def wait_for(self, *args, **kwargs):
@@ -125,13 +126,16 @@ class BridgeTests(TestCase):
                 self.selectors.append(selector)
                 if selector.endswith("> a") and "li:nth-child(2)" in selector:
                     return [Tag(PASTE, "Filehoster: FuckingFast")]
+                # Simulate a direct anchor plus one nested inside a paragraph.
                 if selector == "div.su-spoiler > div.su-spoiler-content > a":
-                    return [Tag(FF2), Tag(FF), Tag("https://example.org/ignore")]
+                    return [Tag(FF2)]
+                if selector == "div.su-spoiler > div.su-spoiler-content a":
+                    return [Tag(FF2), Tag(FF), Tag(FF), Tag("https://example.org/ignore")]
                 return []
         tab = FakeTab()
         data = asyncio.run(bridge.scrape_fitgirl_post(tab, "https://fitgirl-repacks.site/any-game/"))
-        self.assertEqual(set(data), {FF, FF2})
-        self.assertIn("div.su-spoiler > div.su-spoiler-content > a", tab.selectors)
+        self.assertEqual(data, [FF, FF2])
+        self.assertIn("div.su-spoiler > div.su-spoiler-content a", tab.selectors)
 
 
 if __name__ == "__main__":

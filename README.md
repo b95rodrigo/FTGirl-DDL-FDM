@@ -2,7 +2,7 @@
 
 **FTGirl DDL FDM** is a Free Download Manager add-on that turns the **FuckingFast direct-link mirror** from FitGirl release pages into a selectable download list inside FDM.
 
-> Current version: **1.1.0**  
+> Current version: **1.1.1**  
 > Language: **English** · [Português (Brasil)](README.pt-BR.md)
 
 ## What it does
@@ -29,17 +29,17 @@ The direct URL is resolved only when each selected file starts, which helps avoi
 ## Requirements
 
 - Free Download Manager with add-on support.
-- Python **3.11+**. FDM may offer to install the declared Python dependency automatically. Python 3.11+ matches the upstream fitgirl-ddl-ng 0.4.12 requirement.
+- Python **3.11+**. FDM may offer to install the declared Python dependency automatically. Python 3.11+ matches the upstream fitgirl-ddl-ng 0.4.14 requirement.
 - Internet access on the first run so the Python bridge can install its required packages.
 - Chrome, Chromium, Edge or Brave is only needed for the browser fallback path.
 
 ## Install the FDM extension
 
-1. Download `FTGirl-DDL-FDM-v1.1.0.fda` from the project release.
+1. Download `FTGirl-DDL-FDM-v1.1.1.fda` from the project release.
 2. Open **Free Download Manager**.
 3. Open the FDM menu and go to **Add-ons**.
 4. Choose **Install add-on from file...**.
-5. Select `FTGirl-DDL-FDM-v1.1.0.fda`.
+5. Select `FTGirl-DDL-FDM-v1.1.1.fda`.
 6. Allow the `launchPython` permission when FDM asks for it.
 7. If FDM offers to install Python, allow it.
 8. Restart FDM after installation.
@@ -133,21 +133,21 @@ bash build/build.sh
 The build produces:
 
 ```text
-FTGirl-DDL-FDM-v1.1.0.fda
+FTGirl-DDL-FDM-v1.1.1.fda
 ```
 
 ## Release files
 
 A stable release contains:
 
-- `FTGirl-DDL-FDM-v1.1.0.fda` — installable Free Download Manager extension.
-- `FTGirl-DDL-FDM-v1.1.0-source.zip` — complete project source for the same version.
+- `FTGirl-DDL-FDM-v1.1.1.fda` — installable Free Download Manager extension.
+- `FTGirl-DDL-FDM-v1.1.1-source.zip` — complete project source for the same version.
 
-## Upstream compatibility (v1.1.0)
+## Upstream compatibility (v1.1.1)
 
-- This FDM adaptation tracks **fitgirl-ddl-ng v0.4.12** (released October 2, 2026) at [upstream commit `7fc99c35`](https://github.com/mokurin000/fitgirl-ddl-ng/commit/7fc99c35e37cceb964cf7f6b50df6f0519db12e2).
+- This FDM adaptation tracks **fitgirl-ddl-ng v0.4.14** (released November 8, 2026) at [upstream commit `8dbe0984`](https://github.com/mokurin000/fitgirl-ddl-ng/commit/8dbe09842d92551027da44d808a548d40d178afc).
 - The Python bridge pins **Zendriver 0.17.1** and retains the upstream HTMX `POST /f/{id}/go` + `HX-Redirect` resolution contract.
-- Five browser fetch attempts, exponential retry delays, updated FitGirl spoiler selectors, and HTTP-to-browser fallback address recent upstream changes.
+- Five browser fetch attempts, exponential retry delays, FitGirl spoiler selectors that accept nested anchors (including paragraphs), and HTTP-to-browser fallback are supported. The standalone GUI's file-output and telemetry changes are not applicable to FDM.
 - **FDM-specific behavior is preserved**: lists are discovered first and each selected page is resolved only when FDM requests that item.
 - Upstream GUI, CLI, aria2 output, telemetry/Sentry and standalone installers are **not bundled** because this is an FDM extension, not a duplicate of the upstream application.
 - Automated unit checks run on Python 3.11 and 3.12. Final real-world validation requires Windows/FDM and working supported hosts.
