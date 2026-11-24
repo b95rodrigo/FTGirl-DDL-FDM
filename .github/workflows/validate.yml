@@ -77,4 +77,29 @@ jobs:
               bridge.ensure_crypto_aes()
               assert blocked.is_file()
               print("Dependency installation succeeded without shared cache.")
+              import asyncio, base64, hashlib, json, zlib
+              from unittest.mock import patch
+              key = bytes(range(1, 33))
+              n = int.from_bytes(key, "big")
+              encoded = ""
+              while n:
+                  n, rem = divmod(n, 58)
+                  encoded = bridge.BASE58_ALPHABET[rem] + encoded
+              iv, salt = bytes(range(16)), b"test-slt"
+              b64 = lambda b: base64.b64encode(b).decode("ascii")
+              adata = [[b64(iv), b64(salt), 10000, 256, 128, "aes", "gcm", "zlib"], "plaintext", 0, 0]
+              derived = hashlib.pbkdf2_hmac("sha256", key, salt, 10000, dklen=32)
+              aes = bridge.ensure_crypto_aes()
+              cipher = aes.new(derived, aes.MODE_GCM, nonce=iv)
+              cipher.update(json.dumps(adata, separators=(",", ":")).encode())
+              urls = ["https://fuckingfast.co/test1#fixture.part01.rar", "https://fuckingfast.co/test2#fixture.part02.rar"]
+              compressor = zlib.compressobj(wbits=-zlib.MAX_WBITS)
+              plaintext = json.dumps({"paste": "\n".join(urls)}).encode()
+              ciphertext, tag = cipher.encrypt_and_digest(compressor.compress(plaintext) + compressor.flush())
+              payload = {"status": 0, "adata": adata, "ct": b64(ciphertext + tag)}
+              with patch.object(bridge, "fetch_privatebin_json", return_value=payload), patch.object(bridge, "start_browser", side_effect=AssertionError("browser launched")):
+                  result = asyncio.run(bridge.resolve_source("https://paste.fitgirl-repacks.site/?0000000000000000#" + encoded))
+              assert [item["source_url"] for item in result["items"]] == urls
+              assert all("direct_url" not in item for item in result["items"])
+              print("Synthetic encrypted playlist returned two selectable files.")
           '@ | python -
