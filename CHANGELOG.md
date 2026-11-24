@@ -2,6 +2,15 @@
 
 All notable changes to FTGirl DDL FDM are documented in this file.
 
+## [1.1.2] - 2026-11-24
+
+### Fixed
+
+- Disable pip's shared cache during dependency installation to avoid Windows `WinError 5` when building the grapheme wheel for Zendriver.
+- Decode pip output as UTF-8 with replacement and retain more diagnostic details.
+- Add regression tests for cache-free installation and reuse of existing dependencies, plus a Windows dependency-install smoke test with an unusable cache path.
+- Keep upstream 0.4.14, dependency versions and FDM UUID unchanged.
+
 ## [1.1.1] - 2026-11-24
 
 ### Upstream sync

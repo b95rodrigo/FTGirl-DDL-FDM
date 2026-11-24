@@ -53,12 +53,17 @@ def _ensure_dependency(import_name: str, distribution_name: str, required_versio
     package_spec = f"{distribution_name}=={required_version}"
     cmd = [
         sys.executable, "-m", "pip", "install",
-        "--disable-pip-version-check", "--no-input", "--upgrade",
+        # FDM may run Python with a different Windows security context than
+        # the one that owns the user pip cache. Never read/write that cache.
+        "--disable-pip-version-check", "--no-input", "--no-cache-dir", "--upgrade",
         "--target", str(DEPENDENCY_DIR), package_spec,
     ]
-    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=300, shell=False)
+    proc = subprocess.run(
+        cmd, capture_output=True, text=True, encoding="utf-8", errors="replace",
+        env={**os.environ, "PYTHONIOENCODING": "utf-8"}, timeout=300, shell=False,
+    )
     if proc.returncode != 0:
-        detail = (proc.stderr or proc.stdout or "pip install failed")[-1600:]
+        detail = (proc.stderr or proc.stdout or "pip install failed")[-3000:]
         raise RuntimeError(f"Could not install {package_spec}: {detail.strip()}")
 
     # The bridge is a fresh Python process for each FDM parse. Invalidate disk

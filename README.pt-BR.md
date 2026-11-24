@@ -2,7 +2,7 @@
 
 **FTGirl DDL FDM** é uma extensão para o Free Download Manager que transforma o espelho de links diretos **FuckingFast** das páginas FitGirl em uma lista selecionável de arquivos dentro do FDM.
 
-> Versão atual: **1.1.1**  
+> Versão atual: **1.1.2**  
 > Idioma: [English](README.md) · **Português (Brasil)**
 
 ## Como funciona
@@ -35,11 +35,11 @@ O link direto é resolvido apenas quando cada arquivo inicia, evitando que links
 
 ## Como instalar a extensão no Free Download Manager
 
-1. Baixe `FTGirl-DDL-FDM-v1.1.1.fda` na Release do projeto.
+1. Baixe `FTGirl-DDL-FDM-v1.1.2.fda` na Release do projeto.
 2. Abra o **Free Download Manager**.
 3. Abra o menu do FDM e acesse **Add-ons**.
 4. Escolha **Install add-on from file...** / **Instalar add-on a partir de arquivo...**.
-5. Selecione `FTGirl-DDL-FDM-v1.1.1.fda`.
+5. Selecione `FTGirl-DDL-FDM-v1.1.2.fda`.
 6. Autorize a permissão `launchPython` quando o FDM solicitar.
 7. Caso o FDM ofereça a instalação do Python, permita.
 8. Reinicie o FDM após a instalação.
@@ -84,7 +84,7 @@ Os arquivos `.rar` serão exibidos separadamente, cada um baixando através do l
 
 ## Primeira execução
 
-Na primeira execução, o bridge Python instala as dependências em uma pasta temporária do usuário. Nas próximas execuções elas são reutilizadas.
+Na primeira execução, o bridge Python instala as dependências em uma pasta temporária do usuário. Nas próximas execuções elas são reutilizadas. Desde a v1.1.2, o pip instala sem usar seu cache compartilhado para evitar erros de acesso negado no Windows, inclusive na compilação do grapheme.
 
 Para links normais de `paste.fitgirl-repacks.site`, a descriptografia do PrivateBin é feita localmente e não precisa abrir o navegador. Um navegador baseado em Chromium é utilizado apenas como fallback quando o caminho HTTP não consegue resolver uma página suportada.
 
@@ -133,17 +133,17 @@ bash build/build.sh
 O build gera:
 
 ```text
-FTGirl-DDL-FDM-v1.1.1.fda
+FTGirl-DDL-FDM-v1.1.2.fda
 ```
 
 ## Arquivos da Release
 
 A Release estável contém:
 
-- `FTGirl-DDL-FDM-v1.1.1.fda` — extensão instalável no Free Download Manager.
-- `FTGirl-DDL-FDM-v1.1.1-source.zip` — código-fonte completo da mesma versão.
+- `FTGirl-DDL-FDM-v1.1.2.fda` — extensão instalável no Free Download Manager.
+- `FTGirl-DDL-FDM-v1.1.2-source.zip` — código-fonte completo da mesma versão.
 
-## Compatibilidade com o projeto original (v1.1.1)
+## Compatibilidade com o projeto original (v1.1.2)
 
 - Integração adaptada do **fitgirl-ddl-ng v0.4.14**, publicado em 08/11/2026, no [commit `8dbe0984`](https://github.com/mokurin000/fitgirl-ddl-ng/commit/8dbe09842d92551027da44d808a548d40d178afc).
 - Zendriver **0.17.1** e Python **3.11+**.
