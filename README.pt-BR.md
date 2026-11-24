@@ -2,7 +2,7 @@
 
 **FTGirl DDL FDM** é uma extensão para o Free Download Manager que transforma o espelho de links diretos **FuckingFast** das páginas FitGirl em uma lista selecionável de arquivos dentro do FDM.
 
-> Versão atual: **1.1.0**  
+> Versão atual: **1.1.1**  
 > Idioma: [English](README.md) · **Português (Brasil)**
 
 ## Como funciona
@@ -35,11 +35,11 @@ O link direto é resolvido apenas quando cada arquivo inicia, evitando que links
 
 ## Como instalar a extensão no Free Download Manager
 
-1. Baixe `FTGirl-DDL-FDM-v1.1.0.fda` na Release do projeto.
+1. Baixe `FTGirl-DDL-FDM-v1.1.1.fda` na Release do projeto.
 2. Abra o **Free Download Manager**.
 3. Abra o menu do FDM e acesse **Add-ons**.
 4. Escolha **Install add-on from file...** / **Instalar add-on a partir de arquivo...**.
-5. Selecione `FTGirl-DDL-FDM-v1.1.0.fda`.
+5. Selecione `FTGirl-DDL-FDM-v1.1.1.fda`.
 6. Autorize a permissão `launchPython` quando o FDM solicitar.
 7. Caso o FDM ofereça a instalação do Python, permita.
 8. Reinicie o FDM após a instalação.
@@ -133,21 +133,21 @@ bash build/build.sh
 O build gera:
 
 ```text
-FTGirl-DDL-FDM-v1.1.0.fda
+FTGirl-DDL-FDM-v1.1.1.fda
 ```
 
 ## Arquivos da Release
 
 A Release estável contém:
 
-- `FTGirl-DDL-FDM-v1.1.0.fda` — extensão instalável no Free Download Manager.
-- `FTGirl-DDL-FDM-v1.1.0-source.zip` — código-fonte completo da mesma versão.
+- `FTGirl-DDL-FDM-v1.1.1.fda` — extensão instalável no Free Download Manager.
+- `FTGirl-DDL-FDM-v1.1.1-source.zip` — código-fonte completo da mesma versão.
 
-## Compatibilidade com o projeto original (v1.1.0)
+## Compatibilidade com o projeto original (v1.1.1)
 
-- Integração adaptada do **fitgirl-ddl-ng v0.4.12**, publicado em 02/10/2026, no [commit `7fc99c35`](https://github.com/mokurin000/fitgirl-ddl-ng/commit/7fc99c35e37cceb964cf7f6b50df6f0519db12e2).
+- Integração adaptada do **fitgirl-ddl-ng v0.4.14**, publicado em 08/11/2026, no [commit `8dbe0984`](https://github.com/mokurin000/fitgirl-ddl-ng/commit/8dbe09842d92551027da44d808a548d40d178afc).
 - Zendriver **0.17.1** e Python **3.11+**.
-- Resolução HTTP HTMX (`POST /f/{id}/go` + `HX-Redirect`), até cinco tentativas no navegador, esperas progressivas e seletores atualizados de spoilers.
+- Resolução HTTP HTMX (`POST /f/{id}/go` + `HX-Redirect`), até cinco tentativas no navegador, esperas progressivas e seletores de spoilers com suporte a links aninhados (inclusive em parágrafos). As mudanças de gravação de arquivos e telemetria da interface gráfica original não se aplicam ao FDM.
 - A lista do FDM **não contém links diretos temporários**: a resolução ocorre quando cada arquivo é efetivamente iniciado.
 - Os aplicativos GUI/CLI, arquivos aria2, instaladores e Sentry/telemetria do upstream não fazem parte deste complemento.
 - Testes automatizados cobrem Python 3.11 e 3.12; a validação final exige testar no FDM real, em Windows e com os sites acessíveis.

@@ -20,9 +20,10 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import unquote, urldefrag, urlparse
 
-UPSTREAM_VERSION = "0.4.12"
+UPSTREAM_VERSION = "0.4.14"
 ZENDRIVER_VERSION = "0.17.1"
 PYCRYPTODOME_VERSION = "3.23.0"
+# Reuse the existing dependency cache: the pinned runtime packages are unchanged.
 DEPENDENCY_DIR = Path(tempfile.gettempdir()) / "ftgirl-ddl-fdm" / "pydeps-fitgirl-ng-0.4.12"
 PROFILE_DIR = Path(tempfile.gettempdir()) / "ftgirl-ddl-fdm" / "browser-profile"
 FF_RE = re.compile(r"https?://(?:www\.)?fuckingfast\.co/[^\s\"'<>]+", re.I)
@@ -480,7 +481,7 @@ async def scrape_paste_browser(tab, url: str) -> list[str]:
 
 
 async def scrape_fitgirl_post(tab, url: str) -> list[str]:
-    """Adapt the 0.4.12 selectors, keeping PrivateBin fallback for FDM."""
+    """Adapt the 0.4.14 selectors, keeping PrivateBin fallback for FDM."""
     _validated_host(url, {"fitgirl-repacks.site", "www.fitgirl-repacks.site"})
     await tab.get(url)
     try:
@@ -489,9 +490,9 @@ async def scrape_fitgirl_post(tab, url: str) -> list[str]:
         await wait_page(tab)
 
     single_selector = "div.entry-content ul > li:nth-child(2) > a"
-    # Upstream 0.4.12 searches spoiler anchors throughout the article, not
-    # exclusively inside the second list item.
-    spoiler_selector = "div.su-spoiler > div.su-spoiler-content > a"
+    # Upstream 0.4.14 also accepts anchors nested in paragraphs or other
+    # elements inside the spoiler content, not only direct children.
+    spoiler_selector = "div.su-spoiler > div.su-spoiler-content a"
     mirror_links: list[str] = []
     try:
         anchors = await tab.query_selector_all(single_selector)
@@ -535,7 +536,7 @@ async def scrape_fitgirl_post(tab, url: str) -> list[str]:
     raise RuntimeError("Filehoster: FuckingFast links were not found on the FitGirl page")
 
 async def extract_direct_browser(tab, original_url: str) -> str:
-    """Resolve a selected file using the upstream 0.4.12 HTMX POST contract."""
+    """Resolve a selected file using the upstream 0.4.14 HTMX POST contract."""
     file_id = extract_file_id(original_url)
     go_url = f"https://fuckingfast.co/f/{file_id}/go"
     expression = f"""
@@ -690,7 +691,7 @@ async def resolve_source(url: str) -> dict[str, Any]:
 
 def main() -> None:
     if sys.version_info < (3, 11):
-        emit({"ok": False, "error": "Python 3.11 or newer is required (fitgirl-ddl-ng 0.4.12)"}, 1)
+        emit({"ok": False, "error": "Python 3.11 or newer is required (fitgirl-ddl-ng 0.4.14)"}, 1)
 
     if len(sys.argv) < 3:
         emit({"ok": False, "error": "Usage: fdm_bridge.py resolve-one|resolve-source URL"}, 1)

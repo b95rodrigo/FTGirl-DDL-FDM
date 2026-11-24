@@ -2,6 +2,16 @@
 
 All notable changes to FTGirl DDL FDM are documented in this file.
 
+## [1.1.1] - 2026-11-24
+
+### Upstream sync
+
+- Track upstream **0.4.14** (commit `8dbe0984`, released 2026-11-08).
+- Accept anchors nested inside spoiler content, including paragraphs, following upstream selector fix `120eedc0`.
+- Add regression coverage for nested anchors, ordering, duplicates and unsupported hosts.
+- Keep Python 3.11+, Zendriver 0.17.1 and the existing dependency cache; no new runtime dependencies.
+- Preserve FDM playlist behavior, UUID, on-demand resolution and local PrivateBin support. Upstream GUI-only exception handling and telemetry changes are not applicable to this add-on.
+
 ## [1.1.0] - 2026-10-09
 
 ### Upstream sync
