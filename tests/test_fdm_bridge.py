@@ -4,6 +4,8 @@ from __future__ import annotations
 import asyncio
 import importlib.util
 import json
+import sys
+import tempfile
 from pathlib import Path
 from types import SimpleNamespace
 from unittest import TestCase
@@ -45,6 +47,38 @@ class UrlTests(TestCase):
                 self.assertFalse(bridge.is_ff_page(url))
                 with self.assertRaises(ValueError):
                     bridge.extract_file_id(url)
+
+
+class DependencyTests(TestCase):
+    def test_install_disables_pip_cache(self):
+        module = object()
+        missing = bridge.importlib.metadata.PackageNotFoundError("zendriver")
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "deps"
+            with patch.object(bridge, "DEPENDENCY_DIR", target), \
+                 patch.object(sys, "path", list(sys.path)), \
+                 patch.object(bridge.importlib.metadata, "version", side_effect=[missing, "0.17.1"]), \
+                 patch.object(bridge.importlib, "import_module", return_value=module), \
+                 patch.object(bridge.subprocess, "run", return_value=SimpleNamespace(returncode=0)) as run:
+                self.assertIs(bridge.ensure_zendriver(), module)
+                self.assertTrue(target.is_dir())
+                cmd = run.call_args.args[0]
+                self.assertIn("--no-cache-dir", cmd)
+                self.assertEqual(cmd[cmd.index("--target") + 1], str(target))
+                self.assertIn("zendriver==0.17.1", cmd)
+                self.assertFalse(run.call_args.kwargs["shell"])
+                self.assertEqual(run.call_args.kwargs["encoding"], "utf-8")
+
+    def test_existing_dependency_is_reused(self):
+        module = object()
+        with tempfile.TemporaryDirectory() as tmp:
+            with patch.object(bridge, "DEPENDENCY_DIR", Path(tmp)), \
+                 patch.object(sys, "path", list(sys.path)), \
+                 patch.object(bridge.importlib.metadata, "version", return_value="0.17.1"), \
+                 patch.object(bridge.importlib, "import_module", return_value=module), \
+                 patch.object(bridge.subprocess, "run") as run:
+                self.assertIs(bridge.ensure_zendriver(), module)
+                run.assert_not_called()
 
 
 class PrivateBinTests(TestCase):

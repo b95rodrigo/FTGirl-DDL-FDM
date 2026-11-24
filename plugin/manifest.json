@@ -3,7 +3,7 @@
   "author": "b95rodrigo",
   "name": "FTGirl DDL FDM",
   "description": "FDM add-on for FitGirl FuckingFast mirrors, aligned with fitgirl-ddl-ng 0.4.14.",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "icon": "icon.svg",
   "mediaParser": true,
   "mediaListParser": true,
